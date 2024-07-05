@@ -1,4 +1,4 @@
-package com.demo.billing;
+package com.demo.common;
 
 public record BillingData(
         int dataYear,

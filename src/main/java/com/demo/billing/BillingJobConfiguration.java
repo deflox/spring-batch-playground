@@ -2,6 +2,7 @@ package com.demo.billing;
 
 import javax.sql.DataSource;
 
+import com.demo.common.BillingData;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.StepScope;

@@ -8,10 +8,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.core.*;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.batch.test.JobRepositoryTestUtils;
 import org.springframework.batch.test.context.SpringBatchTest;
@@ -33,6 +30,9 @@ class BillingJobTest {
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
 
+	@Autowired
+	private Job job;
+
 	@BeforeEach
 	public void setUp() {
 		this.jobRepositoryTestUtils.removeJobExecutions();
@@ -48,6 +48,7 @@ class BillingJobTest {
 				.addJobParameter("data.year", 2023, Integer.class)
 				.addJobParameter("data.month", 1, Integer.class)
 				.toJobParameters();
+		this.jobLauncherTestUtils.setJob(job);
 
 		// when
 		JobExecution jobExecution = this.jobLauncherTestUtils.launchJob(jobParameters);

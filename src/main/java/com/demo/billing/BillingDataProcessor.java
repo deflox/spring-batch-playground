@@ -1,5 +1,6 @@
 package com.demo.billing;
 
+import com.demo.common.BillingData;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
 

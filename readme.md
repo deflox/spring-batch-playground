@@ -3,7 +3,7 @@ docker run --name billing-db -p 5432:5432 -e POSTGRES_PASSWORD=password -e POSTG
 
 java -jar target/spring-batch-demo-0.0.1-SNAPSHOT.jar input.file=work-dirs/input/billing-2023-01.csv output.file=work-dirs/output/billing-report-2023-01.csv data.year=2023 data.month=1
 
-mvn clean test -Dspring.batch.job.enabled=false
+mvn clean test -Dspring.batch.job.enabled=false -Dtest=RestartabilityJobTest#testJobExecution
 
 -Dmaven.test.skip=true
 ```
