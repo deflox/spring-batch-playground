@@ -42,6 +42,7 @@ class PartitioningJobTest {
     @Test
     void testJobExecution() throws Exception {
         JobParameters jobParameters = new JobParametersBuilder()
+                .addString("input.folder", "work-dirs/input/partitioning")
                 .toJobParameters();
 
         this.jobLauncherTestUtils.setJob(partitioningJob);

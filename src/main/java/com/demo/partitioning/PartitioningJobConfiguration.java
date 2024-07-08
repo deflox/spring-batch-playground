@@ -22,9 +22,6 @@ import org.springframework.jdbc.support.JdbcTransactionManager;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import javax.sql.DataSource;
-import java.io.File;
-import java.util.Arrays;
-import java.util.List;
 
 @Configuration
 public class PartitioningJobConfiguration {
@@ -41,10 +38,11 @@ public class PartitioningJobConfiguration {
     @Bean
     public Step partitioningStep(JobRepository jobRepository,
                                  Step workerStep,
-                                 ThreadPoolTaskExecutor threadPoolTaskExecutor) {
+                                 ThreadPoolTaskExecutor threadPoolTaskExecutor,
+                                 Partitioner partitioner) {
 
         return new StepBuilder("partitioning-step", jobRepository)
-                .partitioner("worker-step", partitioner())
+                .partitioner("worker-step", partitioner)
                 .taskExecutor(threadPoolTaskExecutor)
                 .step(workerStep)
                 .build();
@@ -52,14 +50,10 @@ public class PartitioningJobConfiguration {
     }
 
     @Bean
-    public Partitioner partitioner() {
+    @StepScope
+    public Partitioner partitioner(@Value("#{jobParameters['input.folder']}") String inputFolder) {
 
-        List<String> fileNames = Arrays.asList(
-                new File("work-dirs/input/partitioning").listFiles())
-                .stream()
-                .map(File::getName)
-                .toList();
-        return new InputFilePartitioner(fileNames);
+        return new InputFilePartitioner(inputFolder);
 
     }
 
@@ -67,9 +61,9 @@ public class PartitioningJobConfiguration {
     public ThreadPoolTaskExecutor threadPoolTaskExecutor() {
 
         ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
-        taskExecutor.setMaxPoolSize(4);
-        taskExecutor.setCorePoolSize(4);
-        taskExecutor.setQueueCapacity(4);
+        taskExecutor.setMaxPoolSize(10);
+        taskExecutor.setCorePoolSize(5);
+        taskExecutor.setQueueCapacity(5);
         taskExecutor.afterPropertiesSet();
         return taskExecutor;
 
@@ -91,11 +85,11 @@ public class PartitioningJobConfiguration {
 
     @Bean
     @StepScope
-    public FlatFileItemReader<BillingData> partitioningFileReader(@Value("#{stepExecutionContext['fileName']}") String fileName) {
+    public FlatFileItemReader<BillingData> partitioningFileReader(@Value("#{stepExecutionContext['filePath']}") String filePath) {
 
         return new FlatFileItemReaderBuilder<BillingData>()
                 .name("partitioning-file-reader")
-                .resource(new FileSystemResource("work-dirs/input/partitioning/" + fileName))
+                .resource(new FileSystemResource(filePath))
                 .delimited()
                 .names("dataYear", "dataMonth", "accountId", "phoneNumber", "dataUsage", "callDuration", "smsCount")
                 .targetType(BillingData.class)
