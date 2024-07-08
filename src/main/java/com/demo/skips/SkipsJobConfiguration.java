@@ -2,6 +2,7 @@ package com.demo.skips;
 
 import com.demo.common.BillingData;
 import org.springframework.batch.core.Job;
+import org.springframework.batch.core.SkipListener;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
@@ -12,6 +13,7 @@ import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.JdbcBatchItemWriter;
 import org.springframework.batch.item.database.builder.JdbcBatchItemWriterBuilder;
 import org.springframework.batch.item.file.FlatFileItemReader;
+import org.springframework.batch.item.file.FlatFileParseException;
 import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -38,13 +40,26 @@ public class SkipsJobConfiguration {
     public Step skipsStep(JobRepository jobRepository,
                           JdbcTransactionManager transactionManager,
                           ItemReader<BillingData> skipsFileReader,
-                          ItemWriter<BillingData> skipsTableWriter) {
+                          ItemWriter<BillingData> skipsTableWriter,
+                          SkipListener<BillingData, BillingData> demoSkipListener) {
 
         return new StepBuilder("skips-step", jobRepository)
                 .<BillingData, BillingData>chunk(100, transactionManager)
                 .reader(skipsFileReader)
                 .writer(skipsTableWriter)
+                .faultTolerant()
+                .skip(FlatFileParseException.class)
+                .skipLimit(10)
+                .listener(demoSkipListener)
                 .build();
+
+    }
+
+    @Bean
+    @StepScope
+    public DemoSkipListener demoSkipListener(@Value("#{jobParameters['skip.file']}") String skipFile) {
+
+        return new DemoSkipListener(skipFile);
 
     }
 

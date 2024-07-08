@@ -34,3 +34,4 @@ build/
 
 work-dirs/output/*.csv
 work-dirs/staging/*.csv
+work-dirs/output/*.txt
