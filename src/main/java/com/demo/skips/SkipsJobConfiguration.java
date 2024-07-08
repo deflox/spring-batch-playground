@@ -1,4 +1,4 @@
-package com.demo.restartability;
+package com.demo.skips;
 
 import com.demo.common.BillingData;
 import org.springframework.batch.core.Job;
@@ -22,38 +22,38 @@ import org.springframework.jdbc.support.JdbcTransactionManager;
 import javax.sql.DataSource;
 
 @Configuration
-public class RestartabilityJobConfiguration {
+public class SkipsJobConfiguration {
 
     @Bean
-    public Job restartabilityJob(JobRepository jobRepository,
-                        Step restartabilityStep) {
+    public Job skipsJob(JobRepository jobRepository,
+                        Step skipsStep) {
 
-        return new JobBuilder("restartability-job", jobRepository)
-                .start(restartabilityStep)
+        return new JobBuilder("skips-job", jobRepository)
+                .start(skipsStep)
                 .build();
 
     }
 
     @Bean
-    public Step restartabilityStep(JobRepository jobRepository,
+    public Step skipsStep(JobRepository jobRepository,
                           JdbcTransactionManager transactionManager,
-                          ItemReader<BillingData> restartabilityFileReader,
-                          ItemWriter<BillingData> restartabilityTableWriter) {
+                          ItemReader<BillingData> skipsFileReader,
+                          ItemWriter<BillingData> skipsTableWriter) {
 
-        return new StepBuilder("restartability-step", jobRepository)
+        return new StepBuilder("skips-step", jobRepository)
                 .<BillingData, BillingData>chunk(100, transactionManager)
-                .reader(restartabilityFileReader)
-                .writer(restartabilityTableWriter)
+                .reader(skipsFileReader)
+                .writer(skipsTableWriter)
                 .build();
 
     }
 
     @Bean
     @StepScope
-    public FlatFileItemReader<BillingData> restartabilityFileReader(@Value("#{jobParameters['input.file']}") String inputFile) {
+    public FlatFileItemReader<BillingData> skipsFileReader(@Value("#{jobParameters['input.file']}") String inputFile) {
 
         return new FlatFileItemReaderBuilder<BillingData>()
-                .name("restartability-file-reader")
+                .name("skips-file-reader")
                 .resource(new FileSystemResource(inputFile))
                 .delimited()
                 .names("dataYear", "dataMonth", "accountId", "phoneNumber", "dataUsage", "callDuration", "smsCount")
@@ -63,7 +63,7 @@ public class RestartabilityJobConfiguration {
     }
 
     @Bean
-    public JdbcBatchItemWriter<BillingData> restartabilityTableWriter(DataSource dataSource) {
+    public JdbcBatchItemWriter<BillingData> skipsTableWriter(DataSource dataSource) {
 
         String sql = "insert into BILLING_DATA values (:dataYear, :dataMonth, :accountId, :phoneNumber, :dataUsage, :callDuration, :smsCount)";
         return new JdbcBatchItemWriterBuilder<BillingData>()

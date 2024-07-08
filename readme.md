@@ -12,6 +12,7 @@ mvn clean test -Dspring.batch.job.enabled=false -Dtest=PartitioningJobTest#testJ
 Spring Batch Schema files are stored in the JAR-Dependency.
 
 https://stackoverflow.com/questions/75156721/dbeaver-increase-font-size-in-database-navigator
+https://github.com/spring-projects/spring-batch/tree/main/spring-batch-samples/src/main/java/org/springframework/batch/samples
 
 Demos:
 * Restartibility

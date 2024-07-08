@@ -35,17 +35,17 @@ class RestartabilityJobTest {
 
     @BeforeEach
     public void setUp() {
-        // this.jobRepositoryTestUtils.removeJobExecutions();
-        // JdbcTestUtils.deleteFromTables(this.jdbcTemplate, "BILLING_DATA");
+         this.jobRepositoryTestUtils.removeJobExecutions();
+         JdbcTestUtils.deleteFromTables(this.jdbcTemplate, "BILLING_DATA");
     }
 
     @Test
     void testJobExecution() throws Exception {
         JobParameters jobParameters = new JobParametersBuilder()
-                .addString("input.file", "work-dirs/input/billing-2023-03.csv")
+                .addString("input.file", "work-dirs/input/restartability/billing.csv")
                 .toJobParameters();
-        this.jobLauncherTestUtils.setJob(restartabilityJob);
 
+        this.jobLauncherTestUtils.setJob(restartabilityJob);
         this.jobLauncherTestUtils.launchJob(jobParameters);
     }
 

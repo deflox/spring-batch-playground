@@ -27,73 +27,92 @@ import java.util.Arrays;
 import java.util.List;
 
 @Configuration
-public class PartitioningConfiguration {
+public class PartitioningJobConfiguration {
 
     @Bean
     public Job partitioningJob(JobRepository jobRepository, Step partitioningStep) {
+
         return new JobBuilder("partitioning-job", jobRepository)
                 .start(partitioningStep)
                 .build();
+
     }
 
     @Bean
-    public Step partitioningStep(JobRepository jobRepository, Step workerStep, ThreadPoolTaskExecutor threadPoolTaskExecutor) {
+    public Step partitioningStep(JobRepository jobRepository,
+                                 Step workerStep,
+                                 ThreadPoolTaskExecutor threadPoolTaskExecutor) {
+
         return new StepBuilder("partitioning-step", jobRepository)
                 .partitioner("worker-step", partitioner())
                 .taskExecutor(threadPoolTaskExecutor)
                 .step(workerStep)
                 .build();
+
     }
 
     @Bean
     public Partitioner partitioner() {
-        List<String> fileNames = Arrays.asList(new File("work-dirs/input/partitioning").listFiles()).stream().map(File::getName).toList();
+
+        List<String> fileNames = Arrays.asList(
+                new File("work-dirs/input/partitioning").listFiles())
+                .stream()
+                .map(File::getName)
+                .toList();
         return new InputFilePartitioner(fileNames);
+
     }
 
     @Bean
     public ThreadPoolTaskExecutor threadPoolTaskExecutor() {
+
         ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
         taskExecutor.setMaxPoolSize(4);
         taskExecutor.setCorePoolSize(4);
         taskExecutor.setQueueCapacity(4);
         taskExecutor.afterPropertiesSet();
         return taskExecutor;
+
     }
 
     @Bean
-    public Step workerStep(
-            JobRepository jobRepository,
-            JdbcTransactionManager transactionManager,
-            ItemReader<BillingData> partitioningFileReader,
-            ItemWriter<BillingData> partitioningTableWriter) {
+    public Step workerStep(JobRepository jobRepository,
+                           JdbcTransactionManager transactionManager,
+                           ItemReader<BillingData> partitioningFileReader,
+                           ItemWriter<BillingData> partitioningTableWriter) {
+
         return new StepBuilder("worker-step", jobRepository)
-                .<BillingData, BillingData>chunk(100, transactionManager)
+                .<BillingData, BillingData>chunk(10, transactionManager)
                 .reader(partitioningFileReader)
                 .writer(partitioningTableWriter)
                 .build();
+
     }
 
     @Bean
     @StepScope
-    public FlatFileItemReader<BillingData> partitioningFileReader(@Value("#{stepExecutionContext['fileName']}") String inputFile) {
+    public FlatFileItemReader<BillingData> partitioningFileReader(@Value("#{stepExecutionContext['fileName']}") String fileName) {
+
         return new FlatFileItemReaderBuilder<BillingData>()
                 .name("partitioning-file-reader")
-                .resource(new FileSystemResource("work-dirs/input/partitioning/" + inputFile))
+                .resource(new FileSystemResource("work-dirs/input/partitioning/" + fileName))
                 .delimited()
                 .names("dataYear", "dataMonth", "accountId", "phoneNumber", "dataUsage", "callDuration", "smsCount")
                 .targetType(BillingData.class)
                 .build();
+
     }
 
     @Bean
     public JdbcBatchItemWriter<BillingData> partitioningTableWriter(DataSource dataSource) {
+
         String sql = "insert into BILLING_DATA values (:dataYear, :dataMonth, :accountId, :phoneNumber, :dataUsage, :callDuration, :smsCount)";
         return new JdbcBatchItemWriterBuilder<BillingData>()
                 .dataSource(dataSource)
                 .sql(sql)
                 .beanMapped()
                 .build();
+
     }
 
 }
